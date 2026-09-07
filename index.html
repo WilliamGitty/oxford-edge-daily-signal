@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>
+  // Applied before first paint so switching to dark mode once never causes
+  // a flash of the light theme on every later page load.
+  (function () {
+    try {
+      if (localStorage.getItem('oxfordEdgeTheme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oxford Edge Daily Signal — Monday, 07 September 2026</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.png" type="image/png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#1a2a4a">
+<style>
+  :root {
+    --navy: #1a2a4a;
+    --accent: #1a2a4a;
+    --cream: #f4f4f2;
+    --card-bg: #ffffff;
+    --text: #1a1a1a;
+    --muted: #767676;
+    --source: #999999;
+    --rule: #d8d4c8;
+    --paywall-bg: #fff4e6;
+    --paywall-text: #92400e;
+    --paywall-border: #f0d2a6;
+  }
+  [data-theme="dark"] {
+    --navy: #24406e;
+    --accent: #8fb0e8;
+    --cream: #14181f;
+    --card-bg: #1f2530;
+    --text: #e8e8e6;
+    --muted: #a8a8a8;
+    --source: #8a8a8a;
+    --rule: #333844;
+    --paywall-bg: #3a2c14;
+    --paywall-text: #f0c987;
+    --paywall-border: #5a4520;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cream);
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--text);
+  }
+  .masthead {
+    background: var(--navy);
+    padding: 32px 20px;
+    text-align: center;
+  }
+  .masthead h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: clamp(24px, 5vw, 34px);
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+  .masthead .date {
+    display: block;
+    margin-top: 8px;
+    color: #c9d2e3;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+  .masthead-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .masthead-controls select,
+  .masthead-controls button {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #3a4a6a;
+    background: #22345c;
+    color: #fff;
+    cursor: pointer;
+  }
+  .bookmarks-toggle.active {
+    background: #e9b949;
+    border-color: #e9b949;
+    color: #1a2a4a;
+  }
+  #bookmarks-view {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 20px 60px;
+  }
+  #bookmarks-view[hidden] {
+    display: none;
+  }
+  .bookmarks-empty {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 20px 0;
+    text-align: center;
+  }
+  .intro {
+    max-width: 680px;
+    margin: 16px auto 0;
+    padding: 0 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
+  }
+  main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 20px 60px;
+  }
+  .section {
+    margin-top: 32px;
+  }
+  .section h2 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 6px;
+    margin: 0 0 14px;
+  }
+  .story {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .story:last-child {
+    border-bottom: none;
+  }
+  .headline {
+    display: block;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--accent);
+    text-decoration: none;
+    line-height: 1.35;
+  }
+  .headline:hover {
+    text-decoration: underline;
+  }
+  .summary {
+    margin: 6px 0 8px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .source {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-variant: small-caps;
+    letter-spacing: 0.5px;
+  }
+  .source a {
+    color: var(--source);
+    text-decoration: none;
+  }
+  .source a:hover {
+    text-decoration: underline;
+  }
+  .no-story {
+    padding: 6px 0 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: var(--source);
+    font-style: italic;
+  }
+  .paywall {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: var(--paywall-text);
+    background: var(--paywall-bg);
+    border: 1px solid var(--paywall-border);
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+  .pubdate {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: var(--source);
+  }
+  .share-btn, .bookmark-btn {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--accent);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  .bookmark-btn {
+    margin-left: 6px;
+  }
+  .bookmark-btn.active {
+    background: var(--accent);
+    color: var(--cream);
+    border-color: var(--accent);
+  }
+  .top-picks {
+    max-width: 680px;
+    margin: 16px auto 0;
+    padding: 0 20px;
+  }
+  .top-picks-label {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .pick {
+    display: block;
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .pick-topic {
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+  }
+  .pick-headline {
+    display: block;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--text);
+    margin-top: 2px;
+  }
+  .filter-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--cream);
+    border-bottom: 1px solid var(--rule);
+    padding: 10px 20px;
+    scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .chip {
+    flex: 0 0 auto;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--accent);
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  .chip.active {
+    background: var(--navy);
+    color: #ffffff;
+    border-color: var(--navy);
+  }
+  .section[hidden],
+  .filter-bar[hidden],
+  .top-picks[hidden],
+  .intro[hidden],
+  main[hidden] {
+    display: none;
+  }
+  footer {
+    max-width: 680px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: var(--source);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <h1>Oxford Edge Daily Signal</h1>
+    <span class="date">Monday, 07 September 2026, Updated as of 18:47 BST</span>
+    <div class="masthead-controls">
+      <select onchange="if (this.value) { window.location.href = this.value; }" aria-label="Jump to a previous edition" style="margin-top:12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;padding:6px 10px;border-radius:6px;border:1px solid #3a4a6a;background:#22345c;color:#fff;"><option value="https://williamgitty.github.io/oxford-edge-daily-signal/" selected>Today</option></select>
+      <button type="button" id="theme-toggle" aria-label="Toggle dark mode">&#127769; Dark mode</button>
+      <button type="button" id="bookmarks-toggle" class="bookmarks-toggle" aria-label="View bookmarked stories">&#128278; Bookmarks (<span id="bookmarks-count">0</span>)</button>
+    </div>
+  </div>
+  <div class="top-picks">
+    <div class="top-picks-label">Right now</div>
+      <a class="pick" href="https://www.timeshighereducation.com/news/scrap-caps-training-nhs-doctors-says-reforms-braverman" target="_blank" rel="noopener">
+        <span class="pick-topic">Higher Education News</span>
+        <span class="pick-headline">Scrap caps on training NHS doctors, says Reform’s Braverman - Times Higher Education</span>
+      </a>
+      <a class="pick" href="https://www.civilsociety.co.uk/news/national-trust-sees-costs-rise-as-17-8m-spent-on-redundancies.html" target="_blank" rel="noopener">
+        <span class="pick-topic">Philanthropy &amp; Funder News</span>
+        <span class="pick-headline">National Trust sees costs rise as £17.8m spent on redundancies - civilsociety.co.uk</span>
+      </a>
+  </div>
+  <nav class="filter-bar"><button type="button" class="chip active" data-topic="all">All</button><button type="button" class="chip" data-topic="higher_education">Higher Education News</button><button type="button" class="chip" data-topic="philanthropy_funders">Philanthropy &amp; Funder News</button></nav>
+  <p class="intro">All stories below were published within the last 24 hours, pulled directly from source RSS feeds. Where a section has no qualifying story, that is stated explicitly.</p>
+  <main>
+      <section class="section" data-topic="higher_education">
+        <h2>Higher Education News</h2>
+        <article class="story" data-id="https://www.timeshighereducation.com/news/scrap-caps-training-nhs-doctors-says-reforms-braverman" data-title="Scrap caps on training NHS doctors, says Reform’s Braverman - Times Higher Education" data-summary="Braverman targeting ‘lawful residents’ with plans to ‘ban foreign students’ from accessing loans, says UUK chief" data-source="Times Higher Education" data-published="2026-09-07T13:36:00+00:00" data-section="Higher Education News" data-paywalled="true">
+          <a class="headline" href="https://www.timeshighereducation.com/news/scrap-caps-training-nhs-doctors-says-reforms-braverman" target="_blank" rel="noopener">Scrap caps on training NHS doctors, says Reform’s Braverman - Times Higher Education</a>
+          <p class="summary">Braverman targeting ‘lawful residents’ with plans to ‘ban foreign students’ from accessing loans, says UUK chief</p>
+          <span class="source"><a href="https://www.timeshighereducation.com/news/scrap-caps-training-nhs-doctors-says-reforms-braverman" target="_blank" rel="noopener">Times Higher Education</a> &middot; <span class="pubdate">7 Sep, 14:36</span></span>
+          <span class="paywall">🔒 May require a subscription</span>
+          <button type="button" class="share-btn" hidden data-title="Scrap caps on training NHS doctors, says Reform’s Braverman - Times Higher Education" data-url="https://www.timeshighereducation.com/news/scrap-caps-training-nhs-doctors-says-reforms-braverman">&#8599; Share</button>
+          <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
+        </article>
+        <article class="story" data-id="https://www.insidehighered.com/news/quick-takes/2026/09/06/florida-bars-undocumented-students-public-universities" data-title="Florida Bars Undocumented Students From Attending Public Universities" data-summary="The Florida Board of Governors voted Thursday to bar undocumented students from attending selective institutions in the state’s public university system. According to the new regulation , which passed the board unanimously and without discussion, starting next academic year, anyone “who is present in the United States unlawfully” cannot enroll in any of the state’s 12 public universities that “did not admit all academically qualified applicants” for the past two academic years." data-source="Inside Higher Ed" data-published="2026-09-07T02:31:00+00:00" data-section="Higher Education News" data-paywalled="false">
+          <a class="headline" href="https://www.insidehighered.com/news/quick-takes/2026/09/06/florida-bars-undocumented-students-public-universities" target="_blank" rel="noopener">Florida Bars Undocumented Students From Attending Public Universities</a>
+          <p class="summary">The Florida Board of Governors voted Thursday to bar undocumented students from attending selective institutions in the state’s public university system. According to the new regulation , which passed the board unanimously and without discussion, starting next academic year, anyone “who is present in the United States unlawfully” cannot enroll in any of the state’s 12 public universities that “did not admit all academically qualified applicants” for the past two academic years.</p>
+          <span class="source"><a href="https://www.insidehighered.com/news/quick-takes/2026/09/06/florida-bars-undocumented-students-public-universities" target="_blank" rel="noopener">Inside Higher Ed</a> &middot; <span class="pubdate">7 Sep, 03:31</span></span>
+          
+          <button type="button" class="share-btn" hidden data-title="Florida Bars Undocumented Students From Attending Public Universities" data-url="https://www.insidehighered.com/news/quick-takes/2026/09/06/florida-bars-undocumented-students-public-universities">&#8599; Share</button>
+          <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
+        </article>
+        <article class="story" data-id="https://www.bbc.co.uk/news/articles/cvgy1g7egy9o?at_medium=RSS&amp;at_campaign=rss" data-title="India&#x27;s high-stakes exam system faces a crisis of trust" data-summary="In 2017, India introduced the National Testing Agency (NTA) to conduct fair, transparent and standardised examinations. Set up under the federal education ministry, it was meant to make exams more efficient, consistent and trustworthy, after years of paper leaks, administrative errors and cheating allegations." data-source="BBC News" data-published="2026-09-06T23:02:40+00:00" data-section="Higher Education News" data-paywalled="false">
+          <a class="headline" href="https://www.bbc.co.uk/news/articles/cvgy1g7egy9o?at_medium=RSS&amp;at_campaign=rss" target="_blank" rel="noopener">India&#x27;s high-stakes exam system faces a crisis of trust</a>
+          <p class="summary">In 2017, India introduced the National Testing Agency (NTA) to conduct fair, transparent and standardised examinations. Set up under the federal education ministry, it was meant to make exams more efficient, consistent and trustworthy, after years of paper leaks, administrative errors and cheating allegations.</p>
+          <span class="source"><a href="https://www.bbc.co.uk/news/articles/cvgy1g7egy9o?at_medium=RSS&amp;at_campaign=rss" target="_blank" rel="noopener">BBC News</a> &middot; <span class="pubdate">7 Sep, 00:02</span></span>
+          
+          <button type="button" class="share-btn" hidden data-title="India&#x27;s high-stakes exam system faces a crisis of trust" data-url="https://www.bbc.co.uk/news/articles/cvgy1g7egy9o?at_medium=RSS&amp;at_campaign=rss">&#8599; Share</button>
+          <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
+        </article>
+        <article class="story" data-id="https://www.timeshighereducation.com/news/burnham-skills-plans-put-degree-apprenticeships-risk-v-cs-say" data-title="Burnham skills plans put degree apprenticeships at risk, v-cs say - Times Higher Education" data-summary="Uncertainty over the future of degree apprenticeship funding endangers success of crucial upskilling programme, says Exeter v-c Lisa Roberts" data-source="Times Higher Education" data-published="2026-09-06T23:01:00+00:00" data-section="Higher Education News" data-paywalled="true">
+          <a class="headline" href="https://www.timeshighereducation.com/news/burnham-skills-plans-put-degree-apprenticeships-risk-v-cs-say" target="_blank" rel="noopener">Burnham skills plans put degree apprenticeships at risk, v-cs say - Times Higher Education</a>
+          <p class="summary">Uncertainty over the future of degree apprenticeship funding endangers success of crucial upskilling programme, says Exeter v-c Lisa Roberts</p>
+          <span class="source"><a href="https://www.timeshighereducation.com/news/burnham-skills-plans-put-degree-apprenticeships-risk-v-cs-say" target="_blank" rel="noopener">Times Higher Education</a> &middot; <span class="pubdate">7 Sep, 00:01</span></span>
+          <span class="paywall">🔒 May require a subscription</span>
+          <button type="button" class="share-btn" hidden data-title="Burnham skills plans put degree apprenticeships at risk, v-cs say - Times Higher Education" data-url="https://www.timeshighereducation.com/news/burnham-skills-plans-put-degree-apprenticeships-risk-v-cs-say">&#8599; Share</button>
+          <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
+        </article>
+      </section>
+      <section class="section" data-topic="philanthropy_funders">
+        <h2>Philanthropy &amp; Funder News</h2>
+        <article class="story" data-id="https://www.civilsociety.co.uk/news/national-trust-sees-costs-rise-as-17-8m-spent-on-redundancies.html" data-title="National Trust sees costs rise as £17.8m spent on redundancies - civilsociety.co.uk" data-summary="The National Trust saw its overall expenditure rise by 3% last year as it spent £17.8m on redundancies, according to its annual report. Last year, the conservation charity reduced its workforce by 6% (around 500 full-time roles) in an effort to save £26m from its annual wage bill as part of its “sustainable future” programme. Today, the charity has revealed that £17.8m was spent overall on redundancy costs in the year to February 2026, £16.4m of which came as part of the cost-cutting programme." data-source="civilsociety.co.uk" data-published="2026-09-07T11:07:07+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false">
+          <a class="headline" href="https://www.civilsociety.co.uk/news/national-trust-sees-costs-rise-as-17-8m-spent-on-redundancies.html" target="_blank" rel="noopener">National Trust sees costs rise as £17.8m spent on redundancies - civilsociety.co.uk</a>
+          <p class="summary">The National Trust saw its overall expenditure rise by 3% last year as it spent £17.8m on redundancies, according to its annual report. Last year, the conservation charity reduced its workforce by 6% (around 500 full-time roles) in an effort to save £26m from its annual wage bill as part of its “sustainable future” programme. Today, the charity has revealed that £17.8m was spent overall on redundancy costs in the year to February 2026, £16.4m of which came as part of the cost-cutting programme.</p>
+          <span class="source"><a href="https://www.civilsociety.co.uk/news/national-trust-sees-costs-rise-as-17-8m-spent-on-redundancies.html" target="_blank" rel="noopener">civilsociety.co.uk</a> &middot; <span class="pubdate">7 Sep, 12:07</span></span>
+          
+          <button type="button" class="share-btn" hidden data-title="National Trust sees costs rise as £17.8m spent on redundancies - civilsociety.co.uk" data-url="https://www.civilsociety.co.uk/news/national-trust-sees-costs-rise-as-17-8m-spent-on-redundancies.html">&#8599; Share</button>
+          <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
+        </article>
+        <article class="story" data-id="https://www.researchprofessionalnews.com/rr-news-europe-politics-2026-9-project-aims-to-join-up-europe-s-fragmented-science-advice/" data-title="Project aims to join up Europe’s ‘fragmented’ science advice - Research Professional News" data-summary="Coordinator of EU-funded initiative wants a “truly connected” science-for-policy ecosystem An EU-funded project is aiming to strengthen links between science and policymaking in Europe, with the ultimate intention of building a “truly connected” science-for-policy ecosystem, in the words of its coordinator." data-source="Research Professional News" data-published="2026-09-07T10:06:05+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false">
+          <a class="headline" href="https://www.researchprofessionalnews.com/rr-news-europe-politics-2026-9-project-aims-to-join-up-europe-s-fragmented-science-advice/" target="_blank" rel="noopener">Project aims to join up Europe’s ‘fragmented’ science advice - Research Professional News</a>
+          <p class="summary">Coordinator of EU-funded initiative wants a “truly connected” science-for-policy ecosystem An EU-funded project is aiming to strengthen links between science and policymaking in Europe, with the ultimate intention of building a “truly connected” science-for-policy ecosystem, in the words of its coordinator.</p>
+          <span class="source"><a href="https://www.researchprofessionalnews.com/rr-news-europe-politics-2026-9-project-aims-to-join-up-europe-s-fragmented-science-advice/" target="_blank" rel="noopener">Research Professional News</a> &middot; <span class="pubdate">7 Sep, 11:06</span></span>
+          
+          <button type="button" class="share-btn" hidden data-title="Project aims to join up Europe’s ‘fragmented’ science advice - Research Professional News" data-url="https://www.researchprofessionalnews.com/rr-news-europe-politics-2026-9-project-aims-to-join-up-europe-s-fragmented-science-advice/">&#8599; Share</button>
+          <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
+        </article>
+      </section>
+  </main>
+  <div id="bookmarks-view" hidden></div>
+  <footer>Built automatically from live RSS feeds &mdash; no AI-generated content.</footer>
+  <script>
+    (function () {
+      var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+      var sections = Array.prototype.slice.call(document.querySelectorAll('.section'));
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          chips.forEach(function (c) { c.classList.remove('active'); });
+          chip.classList.add('active');
+          var topic = chip.getAttribute('data-topic');
+          sections.forEach(function (s) {
+            s.hidden = topic !== 'all' && s.getAttribute('data-topic') !== topic;
+          });
+        });
+      });
+
+      if (navigator.share) {
+        Array.prototype.slice.call(document.querySelectorAll('.share-btn')).forEach(function (btn) {
+          btn.hidden = false;
+          btn.addEventListener('click', function () {
+            navigator.share({
+              title: btn.getAttribute('data-title'),
+              url: btn.getAttribute('data-url')
+            }).catch(function () {});
+          });
+        });
+      }
+
+      // Dark mode - persisted, applied before paint on every future load by
+      // the small script at the top of <head>; this handler just flips it.
+      var themeToggle = document.getElementById('theme-toggle');
+      function refreshThemeLabel() {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        themeToggle.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
+      }
+      refreshThemeLabel();
+      themeToggle.addEventListener('click', function () {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.removeAttribute('data-theme');
+          try { localStorage.setItem('oxfordEdgeTheme', 'light'); } catch (e) {}
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          try { localStorage.setItem('oxfordEdgeTheme', 'dark'); } catch (e) {}
+        }
+        refreshThemeLabel();
+      });
+
+      // Bookmarks - stores each bookmarked story's full content (not just
+      // its link), because tomorrow's rebuild removes the story from this
+      // page entirely; only localStorage will still have it. Shared across
+      // every page on this site (today's edition, any archive date) since
+      // localStorage is per-origin, not per-page.
+      var BOOKMARK_KEY = 'oxfordEdgeBookmarks';
+
+      function getBookmarks() {
+        try { return JSON.parse(localStorage.getItem(BOOKMARK_KEY) || '[]'); }
+        catch (e) { return []; }
+      }
+      function saveBookmarks(list) {
+        try { localStorage.setItem(BOOKMARK_KEY, JSON.stringify(list)); } catch (e) {}
+      }
+      function updateBookmarksCount() {
+        var el = document.getElementById('bookmarks-count');
+        if (el) el.textContent = getBookmarks().length;
+      }
+      function syncBookmarkButtons() {
+        var bookmarks = getBookmarks();
+        Array.prototype.slice.call(document.querySelectorAll('.story')).forEach(function (story) {
+          var id = story.getAttribute('data-id');
+          var btn = story.querySelector('.bookmark-btn');
+          if (!btn) return;
+          var bookmarked = bookmarks.some(function (b) { return b.id === id; });
+          btn.classList.toggle('active', bookmarked);
+          btn.innerHTML = bookmarked ? '★ Bookmarked' : '☆ Bookmark';
+        });
+        updateBookmarksCount();
+      }
+      function toggleBookmark(story) {
+        var id = story.getAttribute('data-id');
+        var bookmarks = getBookmarks();
+        var idx = -1;
+        for (var i = 0; i < bookmarks.length; i++) {
+          if (bookmarks[i].id === id) { idx = i; break; }
+        }
+        if (idx >= 0) {
+          bookmarks.splice(idx, 1);
+        } else {
+          bookmarks.unshift({
+            id: id,
+            title: story.getAttribute('data-title'),
+            summary: story.getAttribute('data-summary'),
+            source: story.getAttribute('data-source'),
+            published: story.getAttribute('data-published'),
+            section: story.getAttribute('data-section'),
+            paywalled: story.getAttribute('data-paywalled') === 'true'
+          });
+        }
+        saveBookmarks(bookmarks);
+        syncBookmarkButtons();
+        if (!bookmarksView.hidden) renderBookmarksView();
+      }
+      Array.prototype.slice.call(document.querySelectorAll('.bookmark-btn')).forEach(function (btn) {
+        btn.addEventListener('click', function () { toggleBookmark(btn.closest('.story')); });
+      });
+      syncBookmarkButtons();
+
+      function escapeHtml(s) {
+        var div = document.createElement('div');
+        div.textContent = s || '';
+        return div.innerHTML;
+      }
+      function renderBookmarksView() {
+        var bookmarks = getBookmarks();
+        if (!bookmarks.length) {
+          bookmarksView.innerHTML = '<p class="bookmarks-empty">No bookmarks yet &mdash; tap Bookmark on any story to save it here, even after it drops off the daily page.</p>';
+          return;
+        }
+        bookmarksView.innerHTML = bookmarks.map(function (b) {
+          var paywallHtml = b.paywalled ? '<span class="paywall">🔒 May require a subscription</span>' : '';
+          var pub = '';
+          try {
+            pub = new Date(b.published).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+          } catch (e) {}
+          return '<article class="story">' +
+            '<span class="pick-topic">' + escapeHtml(b.section) + '</span>' +
+            '<a class="headline" href="' + escapeHtml(b.id) + '" target="_blank" rel="noopener">' + escapeHtml(b.title) + '</a>' +
+            '<p class="summary">' + escapeHtml(b.summary) + '</p>' +
+            '<span class="source">' + escapeHtml(b.source) + (pub ? ' &middot; <span class="pubdate">' + escapeHtml(pub) + '</span>' : '') + '</span>' +
+            paywallHtml +
+            '<button type="button" class="bookmark-btn active" data-bookmark-id="' + escapeHtml(b.id) + '">★ Remove bookmark</button>' +
+            '</article>';
+        }).join('');
+        Array.prototype.slice.call(bookmarksView.querySelectorAll('.bookmark-btn')).forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var id = btn.getAttribute('data-bookmark-id');
+            saveBookmarks(getBookmarks().filter(function (b) { return b.id !== id; }));
+            syncBookmarkButtons();
+            renderBookmarksView();
+          });
+        });
+      }
+
+      var bookmarksToggle = document.getElementById('bookmarks-toggle');
+      var bookmarksView = document.getElementById('bookmarks-view');
+      var mainEl = document.querySelector('main');
+      var filterBarEl = document.querySelector('.filter-bar');
+      var topPicksEl = document.querySelector('.top-picks');
+      var introEl = document.querySelector('.intro');
+      bookmarksToggle.addEventListener('click', function () {
+        var showingBookmarks = !bookmarksView.hidden;
+        bookmarksView.hidden = showingBookmarks;
+        mainEl.hidden = !showingBookmarks;
+        if (filterBarEl) filterBarEl.hidden = !showingBookmarks;
+        if (topPicksEl) topPicksEl.hidden = !showingBookmarks;
+        if (introEl) introEl.hidden = !showingBookmarks;
+        bookmarksToggle.classList.toggle('active', !showingBookmarks);
+        if (!showingBookmarks) renderBookmarksView();
+      });
+    })();
+  </script>
+</body>
+</html>

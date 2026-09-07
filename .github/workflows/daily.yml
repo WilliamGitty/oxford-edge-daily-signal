@@ -1,0 +1,69 @@
+name: Daily briefing build & deploy
+
+on:
+  schedule:
+    # Three staggered times: GitHub Actions cron can be delayed or dropped
+    # during high-load periods (worst at the top of the hour, when huge
+    # numbers of repos schedule jobs). If one gets dropped, the others
+    # almost certainly won't be. Running more than once is harmless - the
+    # page just rebuilds from the live feeds again.
+    - cron: "17 6 * * *"
+    - cron: "47 6 * * *"
+    - cron: "17 7 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build index.html
+        run: python build.py
+
+      - name: Commit generated index.html
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A -- index.html archive
+          if git diff --quiet --cached; then
+            echo "No changes to commit."
+          else
+            git commit -m "Automated daily rebuild"
+            git pull --rebase --autostash
+            git push
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

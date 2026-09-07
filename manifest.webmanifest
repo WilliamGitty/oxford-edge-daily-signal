@@ -1,0 +1,11 @@
+{
+  "name": "Oxford Edge Daily Signal",
+  "short_name": "Daily Signal",
+  "description": "Daily higher education and philanthropy/funder news for Oxford Edge, pulled live from RSS feeds - no AI-generated content.",
+  "start_url": "index.html",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f4f4f2",
+  "theme_color": "#1a2a4a",
+  "icons": []
+}
