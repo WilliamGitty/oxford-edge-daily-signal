@@ -56,6 +56,24 @@ PROMO_KEYWORDS = [
     "jobs.philanthropy.com",
     "jobs.insidehighered.com",
     "jobs.timeshighereducation.com",
+    # Found live: CASE's own site mixes job postings ("CASE Career Central")
+    # into its general content the same way - title-matched since the
+    # Google-News-sourced link is opaque until resolved.
+    "career central",
+    "job opening in",
+    # Found live: the <link> for Google-News-sourced items is always an
+    # opaque news.google.com redirect at filter time (only resolved to the
+    # real URL later, for items actually picked) - so exclusions for these
+    # sources have to match the visible title text, not a guessed link
+    # pattern. Oxford's results mix in job postings ("Job Detail -
+    # Department of ... | University of Oxford") and individual college
+    # staff profile pages, which render with the bare subdomain as their
+    # title suffix instead of "University of Oxford" (e.g. "Jemima Price -
+    # keble.ox.ac.uk") since they have no real page title of their own.
+    # Candid's e-learning/product subdomain shows up the same way.
+    "job detail",
+    ".ox.ac.uk",
+    "candid learning",
 ]
 USER_AGENT = (
     "Mozilla/5.0 (compatible; OxfordEdgeDailySignalBot/1.0; "
@@ -72,6 +90,17 @@ INSIDE_HIGHER_ED = "https://www.insidehighered.com/rss.xml"
 # verified live before adding.
 GOOGLE_NEWS_THE = "https://news.google.com/rss/search?q=site:timeshighereducation.com&hl=en-GB&gl=GB&ceid=GB:en"
 GOOGLE_NEWS_CHRONICLE_HE = "https://news.google.com/rss/search?q=site:chronicle.com&hl=en-GB&gl=GB&ceid=GB:en"
+# Added per Lizzie's follow-up: Wonkhe is the standard UK HE policy site
+# (real feed); Harvard/Cambridge news are primary-source university press
+# offices, which break major-gift news before any secondary outlet covers
+# it - both expose real feeds. Oxford's own news site (ox.ac.uk) and Yale
+# News don't expose a working direct feed (ox.ac.uk 403s, Yale 404s on every
+# guessed path) - Google News site: search reaches both, verified live.
+WONKHE = "https://wonkhe.com/feed/"
+HARVARD_GAZETTE = "https://news.harvard.edu/gazette/feed/"
+CAMBRIDGE_NEWS = "https://www.cam.ac.uk/news/feed"
+GOOGLE_NEWS_OXFORD = "https://news.google.com/rss/search?q=site:ox.ac.uk&hl=en-GB&gl=GB&ceid=GB:en"
+GOOGLE_NEWS_YALE = "https://news.google.com/rss/search?q=site:news.yale.edu&hl=en-GB&gl=GB&ceid=GB:en"
 
 # Philanthropy/funder-focused sources - Oxford Edge's core interest.
 # Third Sector, Civil Society News, Chronicle of Philanthropy, and Research
@@ -81,6 +110,18 @@ GOOGLE_NEWS_THIRD_SECTOR = "https://news.google.com/rss/search?q=site:thirdsecto
 GOOGLE_NEWS_CIVIL_SOCIETY = "https://news.google.com/rss/search?q=site:civilsociety.co.uk&hl=en-GB&gl=GB&ceid=GB:en"
 GOOGLE_NEWS_CHRONICLE_PHILANTHROPY = "https://news.google.com/rss/search?q=site:philanthropy.com&hl=en-GB&gl=GB&ceid=GB:en"
 GOOGLE_NEWS_RESEARCH_PROFESSIONAL = "https://news.google.com/rss/search?q=site:researchprofessionalnews.com&hl=en-GB&gl=GB&ceid=GB:en"
+# Added per Lizzie's follow-up. Charity Commission is the UK charity
+# regulator's own primary-source feed (real Atom feed) - direct hit for the
+# regulatory/tax and governance tags. CASE (the HE advancement/fundraising
+# professional body), NACUBO (endowment-focused), Inside Philanthropy, and
+# Candid (Philanthropy News Digest's current home) all 403/404/redirect on
+# every guessed direct-feed path - Google News site: search reaches all
+# four, verified live before adding, same pattern as the sources above.
+CHARITY_COMMISSION = "https://www.gov.uk/government/organisations/charity-commission.atom"
+GOOGLE_NEWS_CASE = "https://news.google.com/rss/search?q=site:case.org&hl=en-GB&gl=GB&ceid=GB:en"
+GOOGLE_NEWS_NACUBO = "https://news.google.com/rss/search?q=site:nacubo.org&hl=en-GB&gl=GB&ceid=GB:en"
+GOOGLE_NEWS_INSIDE_PHILANTHROPY = "https://news.google.com/rss/search?q=site:insidephilanthropy.com&hl=en-GB&gl=GB&ceid=GB:en"
+GOOGLE_NEWS_CANDID = "https://news.google.com/rss/search?q=site:candid.org&hl=en-GB&gl=GB&ceid=GB:en"
 
 # Both lenses requested: general HE sector context, and the philanthropy/
 # funder-focused sources that are Oxford Edge's actual core interest.
@@ -88,7 +129,10 @@ SECTIONS = [
     {
         "key": "higher_education",
         "title": "Higher Education News",
-        "feeds": [BBC_EDUCATION, GUARDIAN_EDUCATION, INSIDE_HIGHER_ED, GOOGLE_NEWS_THE, GOOGLE_NEWS_CHRONICLE_HE],
+        "feeds": [
+            BBC_EDUCATION, GUARDIAN_EDUCATION, INSIDE_HIGHER_ED, GOOGLE_NEWS_THE, GOOGLE_NEWS_CHRONICLE_HE,
+            WONKHE, HARVARD_GAZETTE, CAMBRIDGE_NEWS, GOOGLE_NEWS_OXFORD, GOOGLE_NEWS_YALE,
+        ],
     },
     {
         "key": "philanthropy_funders",
@@ -98,6 +142,11 @@ SECTIONS = [
             GOOGLE_NEWS_CIVIL_SOCIETY,
             GOOGLE_NEWS_CHRONICLE_PHILANTHROPY,
             GOOGLE_NEWS_RESEARCH_PROFESSIONAL,
+            CHARITY_COMMISSION,
+            GOOGLE_NEWS_CASE,
+            GOOGLE_NEWS_NACUBO,
+            GOOGLE_NEWS_INSIDE_PHILANTHROPY,
+            GOOGLE_NEWS_CANDID,
         ],
     },
 ]
@@ -220,6 +269,16 @@ def source_name(entry, feed_url):
         "civilsociety.co.uk": "Civil Society News",
         "philanthropy.com": "The Chronicle of Philanthropy",
         "researchprofessionalnews.com": "Research Professional News",
+        "wonkhe.com": "Wonkhe",
+        "news.harvard.edu": "Harvard Gazette",
+        "cam.ac.uk": "University of Cambridge",
+        "ox.ac.uk": "University of Oxford",
+        "news.yale.edu": "Yale News",
+        "gov.uk": "Charity Commission",
+        "case.org": "CASE",
+        "nacubo.org": "NACUBO",
+        "insidephilanthropy.com": "Inside Philanthropy",
+        "candid.org": "Candid",
     }
     for k, v in known.items():
         if k in host:
