@@ -610,10 +610,22 @@ def render_filter_bar(sections):
 
 def render_tag_filter_bar(sections):
     """Multi-select tag/institution filters, layered on top of the existing
-    single-select topic chips. Only shows chips for tags/institutions that
-    actually appear in today's items - a fixed chip for every one of the 10
-    content tags plus 18 institutions would be mostly dead weight on a
-    typical day."""
+    single-select topic chips.
+
+    All 10 content-category chips from the brief always render, even on a
+    day where none of them have a matching story - these categories are the
+    actual deliverable Lizzie asked for, and hiding a chip entirely whenever
+    it has zero matches made the whole tagging feature invisible on a quiet
+    day (found live: a day with no philanthropy-specific stories showed no
+    category chips at all). Chips with nothing to show today are dimmed via
+    .tag-chip-empty rather than removed, so the full category list is always
+    visible - clicking one just shows an empty result, same as any other
+    filter with no matches.
+
+    Institution chips stay dynamic (only rendered if at least one appears
+    today) since that list is 18 names long and is explicitly the secondary,
+    cross-cutting tag in the brief, not the primary deliverable.
+    """
     used_tags = set()
     used_institutions = set()
     for section in sections:
@@ -621,20 +633,16 @@ def render_tag_filter_bar(sections):
             used_tags |= item.get("tags") or set()
             used_institutions |= item.get("institutions") or set()
 
-    if not used_tags and not used_institutions:
-        return ""
-
     parts = []
-    if used_tags:
-        chips = "".join(
-            f'<button type="button" class="tag-chip" data-tag="{html.escape(t)}">{html.escape(TAG_LABELS[t])}</button>'
-            for t in TAG_ORDER if t in used_tags
-        )
-        parts.append(
-            '<nav class="tag-filter-bar" aria-label="Filter by category">'
-            '<span class="tag-filter-label">Category:</span>' + chips +
-            '<button type="button" class="tag-chip tag-chip-clear" data-clear="tags">Clear</button></nav>'
-        )
+    tag_chips = "".join(
+        f'<button type="button" class="tag-chip{"" if t in used_tags else " tag-chip-empty"}" data-tag="{html.escape(t)}">{html.escape(TAG_LABELS[t])}</button>'
+        for t in TAG_ORDER
+    )
+    parts.append(
+        '<nav class="tag-filter-bar" aria-label="Filter by category">'
+        '<span class="tag-filter-label">Category:</span>' + tag_chips +
+        '<button type="button" class="tag-chip tag-chip-clear" data-clear="tags">Clear</button></nav>'
+    )
     if used_institutions:
         chips = "".join(
             f'<button type="button" class="tag-chip" data-institution="{html.escape(i)}">{html.escape(i)}</button>'
@@ -1039,6 +1047,12 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
   }}
   .tag-chip-clear {{
     border-style: dashed;
+  }}
+  .tag-chip-empty {{
+    opacity: 0.4;
+  }}
+  .tag-chip-empty.active {{
+    opacity: 0.7;
   }}
   .tags {{
     display: flex;

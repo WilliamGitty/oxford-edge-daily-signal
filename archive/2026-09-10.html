@@ -370,6 +370,12 @@
   .tag-chip-clear {
     border-style: dashed;
   }
+  .tag-chip-empty {
+    opacity: 0.4;
+  }
+  .tag-chip-empty.active {
+    opacity: 0.7;
+  }
   .tags {
     display: flex;
     flex-wrap: wrap;
@@ -432,7 +438,7 @@
       </a>
   </div>
   <nav class="filter-bar"><button type="button" class="chip active" data-topic="all">All</button><button type="button" class="chip" data-topic="higher_education">Higher Education News</button><button type="button" class="chip" data-topic="philanthropy_funders">Philanthropy &amp; Funder News</button></nav>
-  
+  <nav class="tag-filter-bar" aria-label="Filter by category"><span class="tag-filter-label">Category:</span><button type="button" class="tag-chip tag-chip-empty" data-tag="hni_gifts">HNI gifts</button><button type="button" class="tag-chip tag-chip-empty" data-tag="foundations">Foundations</button><button type="button" class="tag-chip tag-chip-empty" data-tag="corporate_philanthropy">Corporate philanthropy</button><button type="button" class="tag-chip tag-chip-empty" data-tag="government_grants">Government grants</button><button type="button" class="tag-chip tag-chip-empty" data-tag="endowment_management">Endowment management</button><button type="button" class="tag-chip tag-chip-empty" data-tag="major_gift_announcements">Major gift</button><button type="button" class="tag-chip tag-chip-empty" data-tag="fundraising_campaigns">Fundraising campaign</button><button type="button" class="tag-chip tag-chip-empty" data-tag="sector_trends">Sector trends</button><button type="button" class="tag-chip tag-chip-empty" data-tag="regulatory_tax">Regulatory/tax</button><button type="button" class="tag-chip tag-chip-empty" data-tag="reputational_governance">Reputational/governance</button><button type="button" class="tag-chip tag-chip-clear" data-clear="tags">Clear</button></nav>
   <p class="intro">Higher-education and philanthropy news pulled directly from source RSS feeds. Most stories are from the last 24 hours; foundation, government-grant and regulatory/tax stories carry a slower news cycle and may be up to a week old.</p>
   <main>
       <section class="section" data-topic="higher_education">
