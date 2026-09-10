@@ -525,9 +525,12 @@ def render_story(item, section_title):
     badges_html = f'<div class="tags">{"".join(badge_spans)}</div>' if badge_spans else ""
     data_tags = html.escape(",".join(t for t in TAG_ORDER if t in tags))
     data_institutions = html.escape(",".join(sorted(institutions)))
-    # Hidden by default and only ever unhidden by JS after feature-detecting
-    # navigator.share - so a browser without the Web Share API never shows
-    # a button that would do nothing (or throw) when tapped.
+    # <details>/<summary>: title-only by default, tap/click to expand for
+    # the rest (ported from Agilisys - same native-element choice, for the
+    # same reasons: zero new JS for the toggle itself, works identically on
+    # mobile and desktop, free keyboard/screen-reader behaviour, and none of
+    # the existing bookmark/share/filter JS needed to change since it
+    # already selects by class/attribute, not tag name or DOM depth).
     #
     # data-* attributes carry everything the bookmark feature needs to
     # reconstruct this story from scratch client-side: bookmarking must
@@ -535,15 +538,18 @@ def render_story(item, section_title):
     # removes this story from index.html entirely - only localStorage (not
     # this page) will still have it. data-tags/data-institutions are also
     # read directly by the tag filter bar's JS.
-    return f'''        <article class="story" data-id="{html.escape(item['link'])}" data-title="{html.escape(item['title'])}" data-summary="{html.escape(item['summary'])}" data-source="{html.escape(item['source'])}" data-published="{html.escape(item['published'].isoformat())}" data-section="{html.escape(section_title)}" data-paywalled="{"true" if item.get('paywalled') else "false"}" data-tags="{data_tags}" data-institutions="{data_institutions}">
-          <a class="headline" href="{html.escape(item['link'])}" target="_blank" rel="noopener">{html.escape(item['title'])}</a>
+    return f'''        <details class="story" data-id="{html.escape(item['link'])}" data-title="{html.escape(item['title'])}" data-summary="{html.escape(item['summary'])}" data-source="{html.escape(item['source'])}" data-published="{html.escape(item['published'].isoformat())}" data-section="{html.escape(section_title)}" data-paywalled="{"true" if item.get('paywalled') else "false"}" data-tags="{data_tags}" data-institutions="{data_institutions}">
+          <summary>
+            <span class="kicker">{html.escape(section_title)}</span>
+            <span class="headline">{html.escape(item['title'])}</span>
+          </summary>
           {badges_html}
           <p class="summary">{html.escape(item['summary'])}</p>
           <span class="source"><a href="{html.escape(item['link'])}" target="_blank" rel="noopener">{html.escape(item['source'])}</a> &middot; <span class="pubdate">{html.escape(pubdate)}</span></span>
           {paywall_html}
           <button type="button" class="share-btn" hidden data-title="{html.escape(item['title'])}" data-url="{html.escape(item['link'])}">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>'''
+        </details>'''
 
 
 def pick_top_picks(sections, n=3):
@@ -762,7 +768,7 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
     color: #1a2a4a;
   }}
   #bookmarks-view {{
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 8px 20px 60px;
   }}
@@ -778,7 +784,7 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
     text-align: center;
   }}
   .intro {{
-    max-width: 680px;
+    max-width: 1200px;
     margin: 16px auto 0;
     padding: 0 20px;
     font-family: Arial, Helvetica, sans-serif;
@@ -787,10 +793,20 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
     font-style: italic;
     text-align: center;
   }}
+  /* Wider, multi-column layout on desktop (ported from Agilisys's FT-style
+     redesign) - auto-fit + minmax collapses to a single column on its own
+     once the viewport is too narrow, so phones still get the same stacked
+     layout as before with no separate media query needed. Oxford Edge's own
+     navy/cream editorial palette is kept as-is - only the structural grid
+     pattern is ported, not Agilisys's colour scheme. */
   main {{
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 8px 20px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 0 40px;
+    align-items: start;
   }}
   .section {{
     margin-top: 32px;
@@ -812,17 +828,42 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
   .story:last-child {{
     border-bottom: none;
   }}
-  .headline {{
+  .story summary {{
+    list-style: none;
+    cursor: pointer;
+  }}
+  .story summary::-webkit-details-marker {{
+    display: none;
+  }}
+  .story summary::after {{
+    content: '▸ Expand';
     display: block;
+    margin-top: 4px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--accent);
+  }}
+  .story[open] summary::after {{
+    content: '▾ Collapse';
+  }}
+  .kicker {{
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }}
+  .headline {{
+    display: inline;
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 17px;
     font-weight: bold;
     color: var(--accent);
-    text-decoration: none;
     line-height: 1.35;
-  }}
-  .headline:hover {{
-    text-decoration: underline;
   }}
   .summary {{
     margin: 6px 0 8px;
@@ -889,7 +930,7 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
     border-color: var(--accent);
   }}
   .top-picks {{
-    max-width: 680px;
+    max-width: 1200px;
     margin: 16px auto 0;
     padding: 0 20px;
   }}
@@ -968,7 +1009,7 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 8px 20px 0;
   }}
@@ -1029,7 +1070,7 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
     display: none;
   }}
   footer {{
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto 40px;
     padding: 0 20px;
     font-family: Arial, Helvetica, sans-serif;

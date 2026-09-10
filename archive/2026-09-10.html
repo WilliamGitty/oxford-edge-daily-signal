@@ -98,7 +98,7 @@
     color: #1a2a4a;
   }
   #bookmarks-view {
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 8px 20px 60px;
   }
@@ -114,7 +114,7 @@
     text-align: center;
   }
   .intro {
-    max-width: 680px;
+    max-width: 1200px;
     margin: 16px auto 0;
     padding: 0 20px;
     font-family: Arial, Helvetica, sans-serif;
@@ -123,10 +123,20 @@
     font-style: italic;
     text-align: center;
   }
+  /* Wider, multi-column layout on desktop (ported from Agilisys's FT-style
+     redesign) - auto-fit + minmax collapses to a single column on its own
+     once the viewport is too narrow, so phones still get the same stacked
+     layout as before with no separate media query needed. Oxford Edge's own
+     navy/cream editorial palette is kept as-is - only the structural grid
+     pattern is ported, not Agilisys's colour scheme. */
   main {
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 8px 20px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 0 40px;
+    align-items: start;
   }
   .section {
     margin-top: 32px;
@@ -148,17 +158,42 @@
   .story:last-child {
     border-bottom: none;
   }
-  .headline {
+  .story summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .story summary::-webkit-details-marker {
+    display: none;
+  }
+  .story summary::after {
+    content: '▸ Expand';
     display: block;
+    margin-top: 4px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--accent);
+  }
+  .story[open] summary::after {
+    content: '▾ Collapse';
+  }
+  .kicker {
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .headline {
+    display: inline;
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 17px;
     font-weight: bold;
     color: var(--accent);
-    text-decoration: none;
     line-height: 1.35;
-  }
-  .headline:hover {
-    text-decoration: underline;
   }
   .summary {
     margin: 6px 0 8px;
@@ -225,7 +260,7 @@
     border-color: var(--accent);
   }
   .top-picks {
-    max-width: 680px;
+    max-width: 1200px;
     margin: 16px auto 0;
     padding: 0 20px;
   }
@@ -304,7 +339,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 8px 20px 0;
   }
@@ -365,7 +400,7 @@
     display: none;
   }
   footer {
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto 40px;
     padding: 0 20px;
     font-family: Arial, Helvetica, sans-serif;
@@ -378,7 +413,7 @@
 <body>
   <div class="masthead">
     <h1>Oxford Edge Daily Signal</h1>
-    <span class="date">Thursday, 10 September 2026, Updated as of 10:42 BST</span>
+    <span class="date">Thursday, 10 September 2026, Updated as of 10:47 BST</span>
     <div class="masthead-controls">
       <select onchange="if (this.value) { window.location.href = this.value; }" aria-label="Jump to a previous edition" style="margin-top:12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;padding:6px 10px;border-radius:6px;border:1px solid #3a4a6a;background:#22345c;color:#fff;"><option value="https://williamgitty.github.io/oxford-edge-daily-signal/">Today</option><option value="https://williamgitty.github.io/oxford-edge-daily-signal/archive/2026-09-10.html" selected>Thursday, 10 September 2026</option><option value="https://williamgitty.github.io/oxford-edge-daily-signal/archive/2026-09-09.html">Wednesday, 09 September 2026</option><option value="https://williamgitty.github.io/oxford-edge-daily-signal/archive/2026-09-08.html">Tuesday, 08 September 2026</option><option value="https://williamgitty.github.io/oxford-edge-daily-signal/archive/2026-09-07.html">Monday, 07 September 2026</option></select>
       <button type="button" id="theme-toggle" aria-label="Toggle dark mode">&#127769; Dark mode</button>
@@ -402,81 +437,105 @@
   <main>
       <section class="section" data-topic="higher_education">
         <h2>Higher Education News</h2>
-        <article class="story" data-id="https://www.chronicle.com/newsletter/teaching/2026-09-10" data-title="Subject: Teaching: Are oral exams a better way to test? - The Chronicle of Higher Education" data-summary="Subject: Teaching: Are oral exams a better way to test? The Chronicle of Higher Education" data-source="The Chronicle of Higher Education" data-published="2026-09-10T09:25:10+00:00" data-section="Higher Education News" data-paywalled="true" data-tags="" data-institutions="">
-          <a class="headline" href="https://www.chronicle.com/newsletter/teaching/2026-09-10" target="_blank" rel="noopener">Subject: Teaching: Are oral exams a better way to test? - The Chronicle of Higher Education</a>
+        <details class="story" data-id="https://www.chronicle.com/newsletter/teaching/2026-09-10" data-title="Subject: Teaching: Are oral exams a better way to test? - The Chronicle of Higher Education" data-summary="Subject: Teaching: Are oral exams a better way to test? The Chronicle of Higher Education" data-source="The Chronicle of Higher Education" data-published="2026-09-10T09:25:10+00:00" data-section="Higher Education News" data-paywalled="true" data-tags="" data-institutions="">
+          <summary>
+            <span class="kicker">Higher Education News</span>
+            <span class="headline">Subject: Teaching: Are oral exams a better way to test? - The Chronicle of Higher Education</span>
+          </summary>
           
           <p class="summary">Subject: Teaching: Are oral exams a better way to test? The Chronicle of Higher Education</p>
           <span class="source"><a href="https://www.chronicle.com/newsletter/teaching/2026-09-10" target="_blank" rel="noopener">The Chronicle of Higher Education</a> &middot; <span class="pubdate">10 Sep, 10:25</span></span>
           <span class="paywall">🔒 May require a subscription</span>
           <button type="button" class="share-btn" hidden data-title="Subject: Teaching: Are oral exams a better way to test? - The Chronicle of Higher Education" data-url="https://www.chronicle.com/newsletter/teaching/2026-09-10">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>
-        <article class="story" data-id="https://www.insidehighered.com/news/student-success/college-experience/2026/09/10/hidden-curriculum-first-gen-students-face" data-title="The Hidden Curriculum First-Gen Students Face" data-summary="Being the first in your family to attend college can mean entering an unfamiliar system without the same knowledge or networks some of your peers have—from knowing where to turn for help to navigating financial aid, academics and the unwritten rules of campus life. But first-generation students also bring their own experiences, strengths and support systems with them." data-source="Inside Higher Ed" data-published="2026-09-10T07:00:00+00:00" data-section="Higher Education News" data-paywalled="false" data-tags="" data-institutions="">
-          <a class="headline" href="https://www.insidehighered.com/news/student-success/college-experience/2026/09/10/hidden-curriculum-first-gen-students-face" target="_blank" rel="noopener">The Hidden Curriculum First-Gen Students Face</a>
+        </details>
+        <details class="story" data-id="https://www.insidehighered.com/news/student-success/college-experience/2026/09/10/hidden-curriculum-first-gen-students-face" data-title="The Hidden Curriculum First-Gen Students Face" data-summary="Being the first in your family to attend college can mean entering an unfamiliar system without the same knowledge or networks some of your peers have—from knowing where to turn for help to navigating financial aid, academics and the unwritten rules of campus life. But first-generation students also bring their own experiences, strengths and support systems with them." data-source="Inside Higher Ed" data-published="2026-09-10T07:00:00+00:00" data-section="Higher Education News" data-paywalled="false" data-tags="" data-institutions="">
+          <summary>
+            <span class="kicker">Higher Education News</span>
+            <span class="headline">The Hidden Curriculum First-Gen Students Face</span>
+          </summary>
           
           <p class="summary">Being the first in your family to attend college can mean entering an unfamiliar system without the same knowledge or networks some of your peers have—from knowing where to turn for help to navigating financial aid, academics and the unwritten rules of campus life. But first-generation students also bring their own experiences, strengths and support systems with them.</p>
           <span class="source"><a href="https://www.insidehighered.com/news/student-success/college-experience/2026/09/10/hidden-curriculum-first-gen-students-face" target="_blank" rel="noopener">Inside Higher Ed</a> &middot; <span class="pubdate">10 Sep, 08:00</span></span>
           
           <button type="button" class="share-btn" hidden data-title="The Hidden Curriculum First-Gen Students Face" data-url="https://www.insidehighered.com/news/student-success/college-experience/2026/09/10/hidden-curriculum-first-gen-students-face">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>
-        <article class="story" data-id="https://www.theguardian.com/education/2026/sep/10/teachers-say-holidays-in-term-can-be-worth-more-than-time-in-school" data-title="Many teachers disagree with hardline attendance policies, report suggests" data-summary="Staff at schools in England say enforcement is ‘relentless’ and occasional holiday less worrying than disengagementTeachers have so little belief in the importance of pupils’ full school attendance that they would take their own children on term time holidays if they could, staff have told a three-year research programme.Frontline staff do not believe the school system is set up to deal with an ongoing attendance crisis in England and Wales, where nearly one in five children are now missing at least 10% of school, according to a report based on in-depth conversations with teachers." data-source="The Guardian" data-published="2026-09-09T23:01:08+00:00" data-section="Higher Education News" data-paywalled="false" data-tags="" data-institutions="">
-          <a class="headline" href="https://www.theguardian.com/education/2026/sep/10/teachers-say-holidays-in-term-can-be-worth-more-than-time-in-school" target="_blank" rel="noopener">Many teachers disagree with hardline attendance policies, report suggests</a>
+        </details>
+        <details class="story" data-id="https://www.theguardian.com/education/2026/sep/10/teachers-say-holidays-in-term-can-be-worth-more-than-time-in-school" data-title="Many teachers disagree with hardline attendance policies, report suggests" data-summary="Staff at schools in England say enforcement is ‘relentless’ and occasional holiday less worrying than disengagementTeachers have so little belief in the importance of pupils’ full school attendance that they would take their own children on term time holidays if they could, staff have told a three-year research programme.Frontline staff do not believe the school system is set up to deal with an ongoing attendance crisis in England and Wales, where nearly one in five children are now missing at least 10% of school, according to a report based on in-depth conversations with teachers." data-source="The Guardian" data-published="2026-09-09T23:01:08+00:00" data-section="Higher Education News" data-paywalled="false" data-tags="" data-institutions="">
+          <summary>
+            <span class="kicker">Higher Education News</span>
+            <span class="headline">Many teachers disagree with hardline attendance policies, report suggests</span>
+          </summary>
           
           <p class="summary">Staff at schools in England say enforcement is ‘relentless’ and occasional holiday less worrying than disengagementTeachers have so little belief in the importance of pupils’ full school attendance that they would take their own children on term time holidays if they could, staff have told a three-year research programme.Frontline staff do not believe the school system is set up to deal with an ongoing attendance crisis in England and Wales, where nearly one in five children are now missing at least 10% of school, according to a report based on in-depth conversations with teachers.</p>
           <span class="source"><a href="https://www.theguardian.com/education/2026/sep/10/teachers-say-holidays-in-term-can-be-worth-more-than-time-in-school" target="_blank" rel="noopener">The Guardian</a> &middot; <span class="pubdate">10 Sep, 00:01</span></span>
           
           <button type="button" class="share-btn" hidden data-title="Many teachers disagree with hardline attendance policies, report suggests" data-url="https://www.theguardian.com/education/2026/sep/10/teachers-say-holidays-in-term-can-be-worth-more-than-time-in-school">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>
-        <article class="story" data-id="https://www.timeshighereducation.com/news/all-undergraduates-should-get-work-based-learning-v-cs-say" data-title="All undergraduates should get work-based learning, v-cs say - Times Higher Education" data-summary="The University of Manchester’s recent announcement that all its students will do work experience as part of their courses came as the city’s former mayor, with a focus on local skills needs, became prime minister. So is this academic ‘Manchesterism’ the model for other universities? Georgia Luckhurst reports" data-source="Times Higher Education" data-published="2026-09-09T23:01:00+00:00" data-section="Higher Education News" data-paywalled="true" data-tags="" data-institutions="">
-          <a class="headline" href="https://www.timeshighereducation.com/news/all-undergraduates-should-get-work-based-learning-v-cs-say" target="_blank" rel="noopener">All undergraduates should get work-based learning, v-cs say - Times Higher Education</a>
+        </details>
+        <details class="story" data-id="https://www.timeshighereducation.com/news/all-undergraduates-should-get-work-based-learning-v-cs-say" data-title="All undergraduates should get work-based learning, v-cs say - Times Higher Education" data-summary="The University of Manchester’s recent announcement that all its students will do work experience as part of their courses came as the city’s former mayor, with a focus on local skills needs, became prime minister. So is this academic ‘Manchesterism’ the model for other universities? Georgia Luckhurst reports" data-source="Times Higher Education" data-published="2026-09-09T23:01:00+00:00" data-section="Higher Education News" data-paywalled="true" data-tags="" data-institutions="">
+          <summary>
+            <span class="kicker">Higher Education News</span>
+            <span class="headline">All undergraduates should get work-based learning, v-cs say - Times Higher Education</span>
+          </summary>
           
           <p class="summary">The University of Manchester’s recent announcement that all its students will do work experience as part of their courses came as the city’s former mayor, with a focus on local skills needs, became prime minister. So is this academic ‘Manchesterism’ the model for other universities? Georgia Luckhurst reports</p>
           <span class="source"><a href="https://www.timeshighereducation.com/news/all-undergraduates-should-get-work-based-learning-v-cs-say" target="_blank" rel="noopener">Times Higher Education</a> &middot; <span class="pubdate">10 Sep, 00:01</span></span>
           <span class="paywall">🔒 May require a subscription</span>
           <button type="button" class="share-btn" hidden data-title="All undergraduates should get work-based learning, v-cs say - Times Higher Education" data-url="https://www.timeshighereducation.com/news/all-undergraduates-should-get-work-based-learning-v-cs-say">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>
+        </details>
       </section>
       <section class="section" data-topic="philanthropy_funders">
         <h2>Philanthropy &amp; Funder News</h2>
-        <article class="story" data-id="https://www.philanthropy.com/news/a-quarter-century-on-9-11-charities-evolve-to-remain-relevant/" data-title="A quarter century on, 9/11 charities evolve to remain relevant - Chronicle of Philanthropy" data-summary="Most charities formed after September 11 have disappeared. The ones that lasted redefined whom they serve, and why. When tragedy strikes, people want to help. High-profile disasters are often followed closely by the formation of charities — and at no time was that on greater display than in the aftermath of the September 11 terrorist attacks, when more than 300 new nonprofits were formed. This Friday marks the 25 th anniversary of the 9/11 attacks, which killed nearly 3,000 people." data-source="Chronicle of Philanthropy" data-published="2026-09-09T14:34:09+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false" data-tags="" data-institutions="">
-          <a class="headline" href="https://www.philanthropy.com/news/a-quarter-century-on-9-11-charities-evolve-to-remain-relevant/" target="_blank" rel="noopener">A quarter century on, 9/11 charities evolve to remain relevant - Chronicle of Philanthropy</a>
+        <details class="story" data-id="https://www.philanthropy.com/news/a-quarter-century-on-9-11-charities-evolve-to-remain-relevant/" data-title="A quarter century on, 9/11 charities evolve to remain relevant - Chronicle of Philanthropy" data-summary="Most charities formed after September 11 have disappeared. The ones that lasted redefined whom they serve, and why. When tragedy strikes, people want to help. High-profile disasters are often followed closely by the formation of charities — and at no time was that on greater display than in the aftermath of the September 11 terrorist attacks, when more than 300 new nonprofits were formed. This Friday marks the 25 th anniversary of the 9/11 attacks, which killed nearly 3,000 people." data-source="Chronicle of Philanthropy" data-published="2026-09-09T14:34:09+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false" data-tags="" data-institutions="">
+          <summary>
+            <span class="kicker">Philanthropy &amp; Funder News</span>
+            <span class="headline">A quarter century on, 9/11 charities evolve to remain relevant - Chronicle of Philanthropy</span>
+          </summary>
           
           <p class="summary">Most charities formed after September 11 have disappeared. The ones that lasted redefined whom they serve, and why. When tragedy strikes, people want to help. High-profile disasters are often followed closely by the formation of charities — and at no time was that on greater display than in the aftermath of the September 11 terrorist attacks, when more than 300 new nonprofits were formed. This Friday marks the 25 th anniversary of the 9/11 attacks, which killed nearly 3,000 people.</p>
           <span class="source"><a href="https://www.philanthropy.com/news/a-quarter-century-on-9-11-charities-evolve-to-remain-relevant/" target="_blank" rel="noopener">Chronicle of Philanthropy</a> &middot; <span class="pubdate">9 Sep, 15:34</span></span>
           
           <button type="button" class="share-btn" hidden data-title="A quarter century on, 9/11 charities evolve to remain relevant - Chronicle of Philanthropy" data-url="https://www.philanthropy.com/news/a-quarter-century-on-9-11-charities-evolve-to-remain-relevant/">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>
-        <article class="story" data-id="https://www.civilsociety.co.uk/news/petition-launched-in-support-of-rnli-after-workers-subject-to-far-right-threats.html" data-title="Petition launched in support of RNLI after workers subject to far-right threats - Civil Society Media" data-summary="A petition has been launched in support of the RNLI after the charity and some of its staff and volunteers were subject to misinformation, threats, harassment and “doxxing”– where an individual’s private information is published online – following the recent far-right anti-migration protests organised in Dover and Portsmouth." data-source="Civil Society Media" data-published="2026-09-09T12:23:49+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false" data-tags="" data-institutions="">
-          <a class="headline" href="https://www.civilsociety.co.uk/news/petition-launched-in-support-of-rnli-after-workers-subject-to-far-right-threats.html" target="_blank" rel="noopener">Petition launched in support of RNLI after workers subject to far-right threats - Civil Society Media</a>
+        </details>
+        <details class="story" data-id="https://www.civilsociety.co.uk/news/petition-launched-in-support-of-rnli-after-workers-subject-to-far-right-threats.html" data-title="Petition launched in support of RNLI after workers subject to far-right threats - Civil Society Media" data-summary="A petition has been launched in support of the RNLI after the charity and some of its staff and volunteers were subject to misinformation, threats, harassment and “doxxing”– where an individual’s private information is published online – following the recent far-right anti-migration protests organised in Dover and Portsmouth." data-source="Civil Society Media" data-published="2026-09-09T12:23:49+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false" data-tags="" data-institutions="">
+          <summary>
+            <span class="kicker">Philanthropy &amp; Funder News</span>
+            <span class="headline">Petition launched in support of RNLI after workers subject to far-right threats - Civil Society Media</span>
+          </summary>
           
           <p class="summary">A petition has been launched in support of the RNLI after the charity and some of its staff and volunteers were subject to misinformation, threats, harassment and “doxxing”– where an individual’s private information is published online – following the recent far-right anti-migration protests organised in Dover and Portsmouth.</p>
           <span class="source"><a href="https://www.civilsociety.co.uk/news/petition-launched-in-support-of-rnli-after-workers-subject-to-far-right-threats.html" target="_blank" rel="noopener">Civil Society Media</a> &middot; <span class="pubdate">9 Sep, 13:23</span></span>
           
           <button type="button" class="share-btn" hidden data-title="Petition launched in support of RNLI after workers subject to far-right threats - Civil Society Media" data-url="https://www.civilsociety.co.uk/news/petition-launched-in-support-of-rnli-after-workers-subject-to-far-right-threats.html">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>
-        <article class="story" data-id="https://www.philanthropy.com/author/tamar-remz/" data-title="Tamar Remz - Chronicle of Philanthropy" data-summary="Tamar Remz is the founder of The Palm Collective and Palm Philanthropy Advisors and senior advisor to the Harold Grinspoon Foundation. She serves as board chair of the Constructive Dialogue Institute. Campuses are rebuilding a culture of dialogue. Funders can ensure it lasts. A growing movement to strengthen productive disagreement is reshaping higher ed — but it needs long-term support." data-source="Chronicle of Philanthropy" data-published="2026-09-09T11:11:12+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false" data-tags="" data-institutions="">
-          <a class="headline" href="https://www.philanthropy.com/author/tamar-remz/" target="_blank" rel="noopener">Tamar Remz - Chronicle of Philanthropy</a>
+        </details>
+        <details class="story" data-id="https://www.philanthropy.com/author/tamar-remz/" data-title="Tamar Remz - Chronicle of Philanthropy" data-summary="Tamar Remz is the founder of The Palm Collective and Palm Philanthropy Advisors and senior advisor to the Harold Grinspoon Foundation. She serves as board chair of the Constructive Dialogue Institute. Campuses are rebuilding a culture of dialogue. Funders can ensure it lasts. A growing movement to strengthen productive disagreement is reshaping higher ed — but it needs long-term support." data-source="Chronicle of Philanthropy" data-published="2026-09-09T11:11:12+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false" data-tags="" data-institutions="">
+          <summary>
+            <span class="kicker">Philanthropy &amp; Funder News</span>
+            <span class="headline">Tamar Remz - Chronicle of Philanthropy</span>
+          </summary>
           
           <p class="summary">Tamar Remz is the founder of The Palm Collective and Palm Philanthropy Advisors and senior advisor to the Harold Grinspoon Foundation. She serves as board chair of the Constructive Dialogue Institute. Campuses are rebuilding a culture of dialogue. Funders can ensure it lasts. A growing movement to strengthen productive disagreement is reshaping higher ed — but it needs long-term support.</p>
           <span class="source"><a href="https://www.philanthropy.com/author/tamar-remz/" target="_blank" rel="noopener">Chronicle of Philanthropy</a> &middot; <span class="pubdate">9 Sep, 12:11</span></span>
           
           <button type="button" class="share-btn" hidden data-title="Tamar Remz - Chronicle of Philanthropy" data-url="https://www.philanthropy.com/author/tamar-remz/">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>
-        <article class="story" data-id="https://www.civilsociety.co.uk/news/regulator-concludes-inquiry-into-four-charities-in-22m-cashed-cheques-probe.html" data-title="Regulator concludes inquiry into four charities in £22m cashed cheques probe - Civil Society Media" data-summary="The Charity Commission has concluded its investigation into four charities as part of its ongoing £22m cashed cheques probe. In April 2025, the regulator opened a statutory class inquiry after 105 charities were found to have cashed cheques that were then exchanged for cash to a value of £22m between December 2021 and March 2023." data-source="Civil Society Media" data-published="2026-09-09T11:53:49+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false" data-tags="" data-institutions="">
-          <a class="headline" href="https://www.civilsociety.co.uk/news/regulator-concludes-inquiry-into-four-charities-in-22m-cashed-cheques-probe.html" target="_blank" rel="noopener">Regulator concludes inquiry into four charities in £22m cashed cheques probe - Civil Society Media</a>
+        </details>
+        <details class="story" data-id="https://www.civilsociety.co.uk/news/regulator-concludes-inquiry-into-four-charities-in-22m-cashed-cheques-probe.html" data-title="Regulator concludes inquiry into four charities in £22m cashed cheques probe - Civil Society Media" data-summary="The Charity Commission has concluded its investigation into four charities as part of its ongoing £22m cashed cheques probe. In April 2025, the regulator opened a statutory class inquiry after 105 charities were found to have cashed cheques that were then exchanged for cash to a value of £22m between December 2021 and March 2023." data-source="Civil Society Media" data-published="2026-09-09T11:53:49+00:00" data-section="Philanthropy &amp; Funder News" data-paywalled="false" data-tags="" data-institutions="">
+          <summary>
+            <span class="kicker">Philanthropy &amp; Funder News</span>
+            <span class="headline">Regulator concludes inquiry into four charities in £22m cashed cheques probe - Civil Society Media</span>
+          </summary>
           
           <p class="summary">The Charity Commission has concluded its investigation into four charities as part of its ongoing £22m cashed cheques probe. In April 2025, the regulator opened a statutory class inquiry after 105 charities were found to have cashed cheques that were then exchanged for cash to a value of £22m between December 2021 and March 2023.</p>
           <span class="source"><a href="https://www.civilsociety.co.uk/news/regulator-concludes-inquiry-into-four-charities-in-22m-cashed-cheques-probe.html" target="_blank" rel="noopener">Civil Society Media</a> &middot; <span class="pubdate">9 Sep, 12:53</span></span>
           
           <button type="button" class="share-btn" hidden data-title="Regulator concludes inquiry into four charities in £22m cashed cheques probe - Civil Society Media" data-url="https://www.civilsociety.co.uk/news/regulator-concludes-inquiry-into-four-charities-in-22m-cashed-cheques-probe.html">&#8599; Share</button>
           <button type="button" class="bookmark-btn" aria-label="Bookmark this story">&#9734; Bookmark</button>
-        </article>
+        </details>
       </section>
   </main>
   <div id="bookmarks-view" hidden></div>
