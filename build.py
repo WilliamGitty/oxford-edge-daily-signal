@@ -236,14 +236,91 @@ PAYWALLED_SOURCES = {
     "The Chronicle of Philanthropy",
 }
 
+# Per Lizzie's philanthropy/HE-funding brief (Sept 2026): 10 content tags plus
+# a cross-cutting institution tag, multi-tagged per story. Keyword-matched
+# against title+summary, not LLM-classified - this project deliberately has
+# no AI involvement (see module docstring), so tagging is a heuristic, not a
+# judgment call. It will miss stories that don't use these exact terms and
+# will occasionally mistag on a loose keyword match - acceptable for a
+# filtering aid, not presented as authoritative categorisation.
+TAG_ORDER = [
+    "hni_gifts",
+    "foundations",
+    "corporate_philanthropy",
+    "government_grants",
+    "endowment_management",
+    "major_gift_announcements",
+    "fundraising_campaigns",
+    "sector_trends",
+    "regulatory_tax",
+    "reputational_governance",
+]
+TAG_LABELS = {
+    "hni_gifts": "HNI gifts",
+    "foundations": "Foundations",
+    "corporate_philanthropy": "Corporate philanthropy",
+    "government_grants": "Government grants",
+    "endowment_management": "Endowment management",
+    "major_gift_announcements": "Major gift",
+    "fundraising_campaigns": "Fundraising campaign",
+    "sector_trends": "Sector trends",
+    "regulatory_tax": "Regulatory/tax",
+    "reputational_governance": "Reputational/governance",
+}
+TAG_KEYWORDS = {
+    "hni_gifts": ["philanthropist", "alumnus", "alumna", "donates $", "donates £", "gift from", "pledges $", "pledges £", "gives $", "gives £", "billionaire donor", "private donor"],
+    "foundations": ["foundation", "wellcome trust", "leverhulme", "gates foundation", "ford foundation", "charitable trust", "grant-making"],
+    "corporate_philanthropy": ["corporate partnership", "company-funded", "sponsors a chair", "sponsored chair", "csr", "corporate social responsibility", "industry partnership", "funded chair"],
+    "government_grants": ["research council", "ukri", "government funding", "public funding", "government grant", "research grant", "innovate uk", "dsit", "spending review"],
+    "endowment_management": ["endowment", "investment strategy", "spending policy", "fund performance", "asset allocation"],
+    "major_gift_announcements": ["million gift", "billion gift", "largest ever gift", "naming gift", "record donation", "announces gift of", "landmark gift", "transformative gift"],
+    "fundraising_campaigns": ["capital campaign", "fundraising campaign", "campaign launch", "campaign target", "campaign raises", "fundraising drive"],
+    "sector_trends": ["giving trends", "donor behaviour", "donor behavior", "philanthropy report", "giving report", "sector analysis", "giving survey"],
+    "regulatory_tax": ["charity law", "charity commission", "tax relief", "gift aid", "endowment tax", "regulatory change", "tax treatment", "charities act"],
+    "reputational_governance": ["controversy", "resigns amid", "naming dispute", "conflict of interest", "donor backlash", "returns donation", "governance row", "steps down amid"],
+}
+# Peer/benchmark institutions the brief names or implies ("Oxford colleges,
+# Cambridge, Harvard, Yale, and similar") - a fixed list, not open-ended
+# named-entity extraction, since there's no LLM in this pipeline to do that
+# reliably. Extend this list if Lizzie flags a peer institution it's missing.
+INSTITUTIONS = [
+    "Oxford", "Cambridge", "Harvard", "Yale", "Stanford", "Princeton", "MIT",
+    "Imperial College", "UCL", "LSE", "Columbia", "Cornell", "Penn", "Chicago",
+    "Duke", "NYU", "Edinburgh", "Manchester",
+]
 
-def fetch_recent_items(feed_url, cutoff, keyword=None):
+# Cadence, per the brief: major-gift/governance news needs a same-day read;
+# foundation/government-grant/regulatory news is fine as a rolling weekly
+# view. Implemented as a wider fetch window for those specific tags only -
+# still one daily build (see design discussion), not a separate weekly job.
+WEEKLY_CADENCE_TAGS = {"foundations", "government_grants", "regulatory_tax"}
+URGENT_CADENCE_TAGS = {"hni_gifts", "major_gift_announcements", "reputational_governance"}
+WEEKLY_LOOKBACK_HOURS = 24 * 7
+
+
+def tag_item(title, summary):
+    haystack = f"{title} {summary}".lower()
+    tags = {tag_id for tag_id, keywords in TAG_KEYWORDS.items() if any(kw in haystack for kw in keywords)}
+    institutions = {name for name in INSTITUTIONS if name.lower() in haystack}
+    return tags, institutions
+
+
+def freshness_hours_for_tags(tags):
+    if tags & URGENT_CADENCE_TAGS:
+        return LOOKBACK_HOURS
+    if tags & WEEKLY_CADENCE_TAGS:
+        return WEEKLY_LOOKBACK_HOURS
+    return LOOKBACK_HOURS
+
+
+def fetch_recent_items(feed_url, now, keyword=None):
     parsed = feedparser.parse(feed_url)
     items = []
     seen_links = set()
+    max_cutoff = now - timedelta(hours=WEEKLY_LOOKBACK_HOURS)
     for entry in parsed.entries:
         published = entry_published(entry)
-        if published is None or published < cutoff:
+        if published is None or published < max_cutoff:
             continue
         title = clean_text(entry.get("title", ""))
         summary = trim_summary(clean_text(entry.get("summary", entry.get("description", ""))))
@@ -260,6 +337,9 @@ def fetch_recent_items(feed_url, cutoff, keyword=None):
             haystack = f"{title} {summary}".lower()
             if keyword.lower() not in haystack:
                 continue
+        tags, institutions = tag_item(title, summary)
+        if published < now - timedelta(hours=freshness_hours_for_tags(tags)):
+            continue
         source = source_name(entry, feed_url)
         items.append(
             {
@@ -269,6 +349,8 @@ def fetch_recent_items(feed_url, cutoff, keyword=None):
                 "published": published,
                 "source": source,
                 "paywalled": source in PAYWALLED_SOURCES,
+                "tags": tags,
+                "institutions": institutions,
             }
         )
     items.sort(key=lambda i: i["published"], reverse=True)
@@ -316,14 +398,14 @@ def select_diverse(candidates):
 
 
 def build_sections():
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=LOOKBACK_HOURS)
+    now = datetime.now(timezone.utc)
     used_links = set()
     rendered_sections = []
 
     for section in SECTIONS:
         candidates = []
         for feed_url in section["feeds"]:
-            candidates.extend(fetch_recent_items(feed_url, cutoff, keyword=section.get("keyword")))
+            candidates.extend(fetch_recent_items(feed_url, now, keyword=section.get("keyword")))
 
         # Merge multiple sources by recency, not by feed order.
         candidates.sort(key=lambda i: i["published"], reverse=True)
@@ -436,6 +518,13 @@ def render_story(item, section_title):
         '<span class="paywall">🔒 May require a subscription</span>' if item.get("paywalled") else ""
     )
     pubdate = format_pubdate(item["published"])
+    tags = item.get("tags") or set()
+    institutions = item.get("institutions") or set()
+    badge_spans = [f'<span class="tag-badge">{html.escape(TAG_LABELS[t])}</span>' for t in TAG_ORDER if t in tags]
+    badge_spans += [f'<span class="tag-badge tag-badge-inst">{html.escape(i)}</span>' for i in sorted(institutions)]
+    badges_html = f'<div class="tags">{"".join(badge_spans)}</div>' if badge_spans else ""
+    data_tags = html.escape(",".join(t for t in TAG_ORDER if t in tags))
+    data_institutions = html.escape(",".join(sorted(institutions)))
     # Hidden by default and only ever unhidden by JS after feature-detecting
     # navigator.share - so a browser without the Web Share API never shows
     # a button that would do nothing (or throw) when tapped.
@@ -444,9 +533,11 @@ def render_story(item, section_title):
     # reconstruct this story from scratch client-side: bookmarking must
     # save the full content, not just a link, because tomorrow's rebuild
     # removes this story from index.html entirely - only localStorage (not
-    # this page) will still have it.
-    return f'''        <article class="story" data-id="{html.escape(item['link'])}" data-title="{html.escape(item['title'])}" data-summary="{html.escape(item['summary'])}" data-source="{html.escape(item['source'])}" data-published="{html.escape(item['published'].isoformat())}" data-section="{html.escape(section_title)}" data-paywalled="{"true" if item.get('paywalled') else "false"}">
+    # this page) will still have it. data-tags/data-institutions are also
+    # read directly by the tag filter bar's JS.
+    return f'''        <article class="story" data-id="{html.escape(item['link'])}" data-title="{html.escape(item['title'])}" data-summary="{html.escape(item['summary'])}" data-source="{html.escape(item['source'])}" data-published="{html.escape(item['published'].isoformat())}" data-section="{html.escape(section_title)}" data-paywalled="{"true" if item.get('paywalled') else "false"}" data-tags="{data_tags}" data-institutions="{data_institutions}">
           <a class="headline" href="{html.escape(item['link'])}" target="_blank" rel="noopener">{html.escape(item['title'])}</a>
+          {badges_html}
           <p class="summary">{html.escape(item['summary'])}</p>
           <span class="source"><a href="{html.escape(item['link'])}" target="_blank" rel="noopener">{html.escape(item['source'])}</a> &middot; <span class="pubdate">{html.escape(pubdate)}</span></span>
           {paywall_html}
@@ -511,6 +602,46 @@ def render_filter_bar(sections):
     return '<nav class="filter-bar">' + "".join(chips) + "</nav>"
 
 
+def render_tag_filter_bar(sections):
+    """Multi-select tag/institution filters, layered on top of the existing
+    single-select topic chips. Only shows chips for tags/institutions that
+    actually appear in today's items - a fixed chip for every one of the 10
+    content tags plus 18 institutions would be mostly dead weight on a
+    typical day."""
+    used_tags = set()
+    used_institutions = set()
+    for section in sections:
+        for item in section["items"]:
+            used_tags |= item.get("tags") or set()
+            used_institutions |= item.get("institutions") or set()
+
+    if not used_tags and not used_institutions:
+        return ""
+
+    parts = []
+    if used_tags:
+        chips = "".join(
+            f'<button type="button" class="tag-chip" data-tag="{html.escape(t)}">{html.escape(TAG_LABELS[t])}</button>'
+            for t in TAG_ORDER if t in used_tags
+        )
+        parts.append(
+            '<nav class="tag-filter-bar" aria-label="Filter by category">'
+            '<span class="tag-filter-label">Category:</span>' + chips +
+            '<button type="button" class="tag-chip tag-chip-clear" data-clear="tags">Clear</button></nav>'
+        )
+    if used_institutions:
+        chips = "".join(
+            f'<button type="button" class="tag-chip" data-institution="{html.escape(i)}">{html.escape(i)}</button>'
+            for i in sorted(used_institutions)
+        )
+        parts.append(
+            '<nav class="tag-filter-bar" aria-label="Filter by institution">'
+            '<span class="tag-filter-label">Institution:</span>' + chips +
+            '<button type="button" class="tag-chip tag-chip-clear" data-clear="institutions">Clear</button></nav>'
+        )
+    return "".join(parts)
+
+
 def render_html(sections, today_str, updated_str, archive_nav_html="", asset_prefix=""):
     story_blocks = []
     for section in sections:
@@ -528,6 +659,7 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
 
     sections_html = "\n".join(story_blocks)
     filter_bar_html = render_filter_bar(sections)
+    tag_filter_bar_html = render_tag_filter_bar(sections)
     top_picks_html = render_top_picks(sections)
 
     return f'''<!DOCTYPE html>
@@ -831,8 +963,66 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
     color: #ffffff;
     border-color: var(--navy);
   }}
+  .tag-filter-bar {{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 20px 0;
+  }}
+  .tag-filter-label {{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }}
+  .tag-chip {{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--accent);
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 3px 10px;
+    cursor: pointer;
+  }}
+  .tag-chip.active {{
+    background: var(--navy);
+    color: #ffffff;
+    border-color: var(--navy);
+  }}
+  .tag-chip-clear {{
+    border-style: dashed;
+  }}
+  .tags {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }}
+  .tag-badge {{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    color: var(--accent);
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }}
+  .tag-badge-inst {{
+    color: var(--navy);
+    border-color: var(--navy);
+  }}
+  .story[hidden],
   .section[hidden],
   .filter-bar[hidden],
+  .tag-filter-bar[hidden],
   .top-picks[hidden],
   .intro[hidden],
   main[hidden] {{
@@ -861,7 +1051,8 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
   </div>
 {top_picks_html}
   {filter_bar_html}
-  <p class="intro">All stories below were published within the last 24 hours, pulled directly from source RSS feeds. Where a section has no qualifying story, that is stated explicitly.</p>
+  {tag_filter_bar_html}
+  <p class="intro">Higher-education and philanthropy news pulled directly from source RSS feeds. Most stories are from the last 24 hours; foundation, government-grant and regulatory/tax stories carry a slower news cycle and may be up to a week old.</p>
   <main>
 {sections_html}
   </main>
@@ -871,14 +1062,78 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
     (function () {{
       var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
       var sections = Array.prototype.slice.call(document.querySelectorAll('.section'));
+      var tagChips = Array.prototype.slice.call(document.querySelectorAll('.tag-chip[data-tag]'));
+      var instChips = Array.prototype.slice.call(document.querySelectorAll('.tag-chip[data-institution]'));
+      var clearBtns = Array.prototype.slice.call(document.querySelectorAll('.tag-chip-clear'));
+      var activeTopic = 'all';
+      var activeTags = {{}};
+      var activeInstitutions = {{}};
+
+      function hasAny(obj) {{
+        for (var k in obj) {{ if (obj[k]) return true; }}
+        return false;
+      }}
+
+      // Topic (section) filtering stays single-select, as before. Tag and
+      // institution filtering is multi-select and operates per-story within
+      // whatever sections the topic filter leaves visible - a section with
+      // zero visible stories after tag filtering hides itself too, but only
+      // when a tag/institution filter is actually active (otherwise a
+      // genuinely empty section should still show its "no story" message).
+      function applyFilters() {{
+        var tagsActive = hasAny(activeTags);
+        var instActive = hasAny(activeInstitutions);
+        sections.forEach(function (section) {{
+          var topicMatch = activeTopic === 'all' || section.getAttribute('data-topic') === activeTopic;
+          var anyStoryVisible = false;
+          Array.prototype.slice.call(section.querySelectorAll('.story')).forEach(function (story) {{
+            var storyTags = (story.getAttribute('data-tags') || '').split(',').filter(Boolean);
+            var storyInst = (story.getAttribute('data-institutions') || '').split(',').filter(Boolean);
+            var tagMatch = !tagsActive || storyTags.some(function (t) {{ return activeTags[t]; }});
+            var instMatch = !instActive || storyInst.some(function (i) {{ return activeInstitutions[i]; }});
+            var visible = topicMatch && tagMatch && instMatch;
+            story.hidden = !visible;
+            if (visible) anyStoryVisible = true;
+          }});
+          section.hidden = !topicMatch || ((tagsActive || instActive) && !anyStoryVisible);
+        }});
+      }}
+
       chips.forEach(function (chip) {{
         chip.addEventListener('click', function () {{
           chips.forEach(function (c) {{ c.classList.remove('active'); }});
           chip.classList.add('active');
-          var topic = chip.getAttribute('data-topic');
-          sections.forEach(function (s) {{
-            s.hidden = topic !== 'all' && s.getAttribute('data-topic') !== topic;
-          }});
+          activeTopic = chip.getAttribute('data-topic');
+          applyFilters();
+        }});
+      }});
+      tagChips.forEach(function (chip) {{
+        chip.addEventListener('click', function () {{
+          var tag = chip.getAttribute('data-tag');
+          activeTags[tag] = !activeTags[tag];
+          chip.classList.toggle('active', activeTags[tag]);
+          applyFilters();
+        }});
+      }});
+      instChips.forEach(function (chip) {{
+        chip.addEventListener('click', function () {{
+          var inst = chip.getAttribute('data-institution');
+          activeInstitutions[inst] = !activeInstitutions[inst];
+          chip.classList.toggle('active', activeInstitutions[inst]);
+          applyFilters();
+        }});
+      }});
+      clearBtns.forEach(function (btn) {{
+        btn.addEventListener('click', function () {{
+          var which = btn.getAttribute('data-clear');
+          if (which === 'tags') {{
+            activeTags = {{}};
+            tagChips.forEach(function (c) {{ c.classList.remove('active'); }});
+          }} else {{
+            activeInstitutions = {{}};
+            instChips.forEach(function (c) {{ c.classList.remove('active'); }});
+          }}
+          applyFilters();
         }});
       }});
 
@@ -1013,6 +1268,7 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
       var bookmarksView = document.getElementById('bookmarks-view');
       var mainEl = document.querySelector('main');
       var filterBarEl = document.querySelector('.filter-bar');
+      var tagFilterBarEls = Array.prototype.slice.call(document.querySelectorAll('.tag-filter-bar'));
       var topPicksEl = document.querySelector('.top-picks');
       var introEl = document.querySelector('.intro');
       bookmarksToggle.addEventListener('click', function () {{
@@ -1020,6 +1276,7 @@ def render_html(sections, today_str, updated_str, archive_nav_html="", asset_pre
         bookmarksView.hidden = showingBookmarks;
         mainEl.hidden = !showingBookmarks;
         if (filterBarEl) filterBarEl.hidden = !showingBookmarks;
+        tagFilterBarEls.forEach(function (el) {{ el.hidden = !showingBookmarks; }});
         if (topPicksEl) topPicksEl.hidden = !showingBookmarks;
         if (introEl) introEl.hidden = !showingBookmarks;
         bookmarksToggle.classList.toggle('active', !showingBookmarks);
